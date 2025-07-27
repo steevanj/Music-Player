@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Music Player</title>
+  <link href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mediaelement/4.2.7/mediaelementplayer.min.css" rel="stylesheet"/>
+  <link href="{% static 'style.css' %}" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Sofia">
+</head>
+
+<body>
+
+  {% include 'main.html' %}
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mediaelement/4.2.7/mediaelement-and-player.min.js"></script>
+  <script src="{% static 'script.js' %}"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const audio = document.getElementById('fc-media');  // Ensure this ID matches your <audio> element
+        const lyricsContainer = document.getElementById('song-lyrics');
+
+        if (!audio || !lyricsContainer) return;
+
+        let currentLyricIndex = 0;
+
+        // Retrieve lyrics from data-attribute and parse JSON
+        const lyricsJSON = lyricsContainer.getAttribute('data-lyrics');
+        let lyricsData = [];
+
+        try {
+          lyricsData = JSON.parse(lyricsJSON);
+        } catch (err) {
+          console.error("Invalid JSON in lyrics data:", err);
+          lyricsContainer.innerText = "Lyrics unavailable.";
+          return;
+        }
+
+        audio.addEventListener('timeupdate', function () {
+          const currentTime = audio.currentTime;
+
+          // Advance through lyrics based on audio time
+          while (currentLyricIndex < lyricsData.length - 1 &&
+                 currentTime >= timeToSeconds(lyricsData[currentLyricIndex + 1].time)) {
+            currentLyricIndex++;
+          }
+
+          // Display current lyric
+          lyricsContainer.innerText = lyricsData[currentLyricIndex].lyrics;
+        });
+
+        function timeToSeconds(time) {
+          const [min, sec] = time.split(':').map(parseFloat);
+          return min * 60 + sec;
+        }
+    });
+  </script>
+
+</body>
+</html>
